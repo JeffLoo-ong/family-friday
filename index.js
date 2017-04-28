@@ -216,6 +216,7 @@ function generateGroups(){
 
 		printGroups(groupSize, extraPeople, b_splitGroups);
 
+	// Case 0: Not enough people to make groups
 	} else {
 		console.log("There are " + m_total_people+ " people, we need at least 6 friends to" +
 			" make random groups!");
@@ -330,9 +331,9 @@ function printGroups(i_groupSize, i_extraPeople, b_splitGroups){
 function randomizeArray(){
 	var m = m_total_people, t, i;
 
-	// While there remain elements to shuffle…
+	// While there remain elements to shuffle...
 	while (m) {
-		// Pick a remaining element…
+		// Pick a remaining element...
 		i = Math.floor(Math.random() * m--);
 
 		// And swap it with the current element.
