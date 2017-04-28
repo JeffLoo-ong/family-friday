@@ -2,7 +2,7 @@
  * Program: Family Friday
  * Desc: 	Create random groups of people to eat lunch with!
  * Author: 	Jeff Luong
- * Rev: 	1.0
+ * Rev: 	1.0.1
  * Updated: 4/28/2017
  */
 
@@ -179,7 +179,7 @@ function addEmployee(){
  * Params: 		NA
  * Returns: 	NA
  * CalledBy: 	start()
- * Calls: 		randomizeArray(), printGroups()
+ * Calls: 		randomizeArray(), printGroups(), start()
  */
 function generateGroups(){
 	var groupSize; 				// Hold the size of the groups to create
@@ -327,6 +327,7 @@ function printGroups(i_groupSize, i_extraPeople, b_splitGroups){
  * Params: 		NA
  * Returns: 	NA
  * CalledBy: 	generateGroups()
+ * Calls: 		NA
  */
 function randomizeArray(){
 	var m = m_total_people, t, i;
