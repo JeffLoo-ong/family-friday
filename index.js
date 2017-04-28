@@ -46,30 +46,61 @@ function initialize(){
 		)
 	);
 
-	console.log('Initializing employee list from ' + m_list_name + '...');
+	var questions = [
+		{
+			name: 'fileName',
+			type: 'input',
+			message: 'Enter a file to load, otherwise a default file (eList.txt) will be loaded\n',
+			validate: function (fileName) {
+				if(fileName.indexOf('.txt') > -1) {
+					return true;
+				} else if ( fileName == ''){
+					return true;
+				} else {
+					return console.log('\nPlease enter a valid .txt file or blank\n');
+				}
+			}
+		}
+	];
 
-	// Load employee list from m_list_name
-	fs.readFile(m_list_name, function(err, data) {
-	    if(err){
-	    	throw err;	
-	    } 
-	    var array = data.toString().split("\n");
-	    
-	    var i = 0;
-	    for(i; i < array.length; i++) {
-	        m_employee_array.push(array[i]);
-	    }
+	inquirer.prompt(questions).then(function(response) {
+		// Set the file name to user input
+		if(response.fileName != ''){
+			m_list_name = response.fileName;
+		} 
+
+		console.log('Initializing employee list from ' + m_list_name + '...');
+		// Load employee list from m_list_name
+		fs.readFile(m_list_name, function(err, data) {
+		    if(err){
+		    	throw err;
+		    	// TODO: Make it so that the user gets prompted the question again
+		    	// 		 This can be done with a callback once you separate out 
+		    	// 		 the functionality here
+		    	// console.log("Error reading file: " + err);
+
+		    } else{
+			    var array = data.toString().split("\n");
+			    
+			    var i = 0;
+			    for(i; i < array.length; i++) {
+			        m_employee_array.push(array[i]);
+			    }
+			    
+			    // TODO: switched out of setTimeout function. Works with 5 people
+				m_total_people = m_employee_array.length;
+				console.log("Done!");
+				
+				start();
+		    }
+		    // TODO: Verify that this is not needed. 
+			// Set a timeout to allow above data to be set
+			// setTimeout(function(){ 
+			// 	// Set total number of people here so we don't have to call m_employee_array.length
+			// 	// multiple times 
+			// }, m_time_to_wait);	
+		});
 	});
-
-	// NOTE: Decision here to create a small time out since array would not be filled immediately 
-	// Set a timeout to allow above data to be set
-	setTimeout(function(){ 
-		console.log("Done!");
-		// Set total number of people here so we don't have to call m_employee_array.length
-		// multiple times 
-		m_total_people = m_employee_array.length;
-		start();
-	}, m_time_to_wait);	
 } // initialize()
 
 
