@@ -12,10 +12,10 @@ var fs          = require('fs');
 
 
 // Module Variables
-var m_employee_list 	= [];				// Stores m_list_name in an array
-var m_Spinner     	= CLI.Spinner;			// Spinner art
+var m_employee_array 	= [];				// Stores m_list_name in an array
+var m_Spinner     		= CLI.Spinner;		// Spinner art
 var m_list_name 		= 'eList.txt';		// File to load list of names from	
-
+var m_total_people;							// Total people in the list_name
 
 // Program starts here!
 setup();
@@ -54,7 +54,7 @@ function setup(){
 	    
 	    var i = 0;
 	    for(i; i < array.length; i++) {
-	        m_employee_list.push(array[i]);
+	        m_employee_array.push(array[i]);
 	    }
 	});
 
@@ -62,6 +62,9 @@ function setup(){
 	// Set a timeout to allow above data to be set
 	setTimeout(function(){ 
 		console.log("Done!");
+		// Set total number of people here so we don't have to call m_employee_array.length
+		// multiple times 
+		m_total_people = m_employee_array.length;
 		start();
 	}, 500);	
 } // setup()
@@ -88,7 +91,7 @@ function start() {
 				if(value == 1 || value == 2 || value == 3) {
 					return true;
 				} else {
-					return 'Please enter \'1\' or \'2\'';
+					return 'Please enter \'1\',\'2\' or \'3\'';
 				}
 			}
 		}
@@ -119,6 +122,7 @@ function start() {
  * Params: 		NA
  * Returns: 	NA
  * CalledBy: 	start()
+ * Calls: 		start()
  */
 function addEmployee(){
 	
@@ -158,15 +162,111 @@ function addEmployee(){
 		  }
 		  else{
 		  	console.log('Added ' + response.employee_name + ' to the list!');
+
+		  	// Increment the total number of people
+		  	m_total_people++;
+		  	
 		  	start();
 		  }
 		});
 	});
 } // addEmployee()
 
+/*
+ * Function: 	generateGroups()
+ * Desc: 		Sort the list into groups
+ * Params: 		NA
+ * Returns: 	NA
+ * CalledBy: 	start()
+ * Calls: 		randomizeArray(), printGroups()
+ */
+function generateGroups(){
+	var groupSize; 				// Hold the size of the groups to create
+	var b_splitGroups = false;	// Boolean to split groups or not.
+	var extraPeople;			// Number of extras not in groups
+	
+	// Only randomize if we have more than 5 people
+	// Prevent printing groups if we don't have at least 2 groups of 3
+	if(m_total_people > 5) {
+		randomizeArray();
+		// Determine group sizes
+		// 5 is the default in case of uneven groups
+		// 1 extra person = 2 groups of 3
+		// 2 extra people = groups of 3 + 4
+		// 3 extra people = 2 groups of 4 
+		if(m_total_people % 3 == 0) {
+			groupSize = 3;
+		}
+		else if (m_total_people % 4 == 0){
+			groupSize = 4;
+		}
+		else {
+			if(m_total_people % 5 != 0){
+				extraPeople = m_total_people % 5;
+				// debug
+				console.log("extra people: " + extraPeople);
+				b_splitGroups = true;
+			}
+			groupSize = 5;
+		}
 
-// Randomize the array order
-// 
-// Determine what groups to use (3/4/5)
-// 
+		printGroups(groupSize, extraPeople, b_splitGroups);
+	} else {
+		console.log("There are " + m_total_people+ " people, we need at least 6 friends to" +
+			" make random groups!");
+		start();
+	}
+} // generateGroups()
+
+/*
+ * Function: 	printGroups()
+ * Desc: 		Print out the groups
+ * Params: 		i_groupSize, i_extraPeople, b_splitGroups
+ * Returns: 	NA
+ * CalledBy: 	generateGroups()
+ * Calls: 		NA
+ */
+function printGroups(i_groupSize, i_extraPeople, b_splitGroups){
+	var groupNum = 1;		// Initialize group numbers to 1
+	
+	// Set the divisible limit to not include the extra peoplea and the last group
+	var limit = m_total_people -(i_groupSize + i_extraPeople);
+
+	// TODO: Latest point, fix me soon.
+	console.log("Done for now!");
+	return -1;
+
+} // printGroups()
+
+/*
+ * Function: 	randomizeArray()
+ * Desc: 		Randomize the m_employee_array using 
+ * 				Fisher-Yates shuffle
+ * Params: 		NA
+ * Returns: 	NA
+ * CalledBy: 	generateGroups()
+ */
+function randomizeArray(){
+	var m = m_employee_array.length, t, i;
+
+	// While there remain elements to shuffle…
+	while (m) {
+		// Pick a remaining element…
+		i = Math.floor(Math.random() * m--);
+
+		// And swap it with the current element.
+		t = m_employee_array[m];
+		m_employee_array[m] = m_employee_array[i];
+		m_employee_array[i] = t;
+	}
+
+	// Debug
+	// var x;
+	// for(x = 0; x < m_employee_array.length; x++){
+	// 	console.log(m_employee_array[x]);
+	// }
+
+} // randomizeArray()
+
+
 // Print out groups
