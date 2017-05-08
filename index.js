@@ -22,6 +22,8 @@ var m_employee_array 	= [];				// Stores m_list_name in an array
 var m_list_name 		= 'eList.txt';		// File to load list of names from	
 var m_total_people;							// Total people in the list_name
 var m_time_to_wait 		= 500;				// Time to allow assignment of m_employee_array
+var m_group_num			= 1;				// Group number counter
+var m_group_it			= 0;				// Group name iterator
 
 // Program starts here!
 initialize();
@@ -30,7 +32,7 @@ initialize();
 /*
  * Function: 	initialize()
  * Desc: 		Prepare the console and load employee list
- * Params: 		NA
+ * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	index.js
  * Calls: 		start();
@@ -107,7 +109,7 @@ function initialize(){
 /*
  * Function: 	start()
  * Desc: 		Initialize the program workflow
- * Params: 		NA
+ * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	index.js
  * Calls: 		addEmployee(), generateGroups()
@@ -153,7 +155,7 @@ function start() {
 /*
  * Function: 	addEmployee()
  * Desc: 		Append the employee to list of employees
- * Params: 		NA
+ * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	start()
  * Calls: 		start()
@@ -207,14 +209,13 @@ function addEmployee(){
 /*
  * Function: 	generateGroups()
  * Desc: 		Sort the list into groups
- * Params: 		NA
+ * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	start()
  * Calls: 		randomizeArray(), printGroups(), start()
  */
 function generateGroups(){
 	var groupSize; 				// Hold the size of the groups to create
-	var b_splitGroups = false;	// Boolean to split groups or not.
 	var extraPeople;			// Number of extras not in groups
 	
 	// Only randomize if we have more than 5 people
@@ -223,6 +224,7 @@ function generateGroups(){
 		// debug
 		// console.log("total peeps: " + m_total_people);
 		randomizeArray();
+		
 		// Determine group sizes
 		// 5 is the default in case of uneven groups
 		// 1 extra person = 2 groups of 3
@@ -240,16 +242,15 @@ function generateGroups(){
 				extraPeople = m_total_people % 5;
 				// debug
 				// console.log("extra people: " + extraPeople);
-				b_splitGroups = true;
 			}
 			groupSize = 5;
 		}
 
-		printGroups(groupSize, extraPeople, b_splitGroups);
+		printGroups(groupSize, extraPeople);
 
 	// Case 0: Not enough people to make groups
 	} else {
-		console.log("There are " + m_total_people+ " people, we need at least 6 friends to" +
+		console.log("There are " + m_total_people + " people, we need at least 6 friends to" +
 			" make random groups!");
 		start();
 	}
@@ -261,13 +262,15 @@ function generateGroups(){
  * 				Case 1: Minimal amount of people to separate (6 or 7)
  * 				Case 2: More than 7 people, requires split
  * 				Case 3: Evenly divisible amount of people
- * Params: 		i_groupSize, i_extraPeople, b_splitGroups
+ * Param: 		i_groupSize - Number of people per group
+ * Param: 		i_extraPeople - Extra people that don't fit the determined group size
  * Returns: 	NA
  * CalledBy: 	generateGroups()
  * Calls: 		NA
  */
-function printGroups(i_groupSize, i_extraPeople, b_splitGroups){
-	var groupNum = 1;		// Initialize group numbers to 1
+function printGroups(i_groupSize, i_extraPeople){
+	m_group_num = 1;		// Reset the group number to 1	
+	m_group_it 	= 0;		// Reset the group iterator to 0;
 	var i = 0;				// Group iterator
 	var t = 0;				// Employee array iterator
 
@@ -281,7 +284,7 @@ function printGroups(i_groupSize, i_extraPeople, b_splitGroups){
 
 	// Determine if we want to split the last 2 groups differently
 	// Set up an offset to the total people if we do
-	if(b_splitGroups && i_extraPeople){
+	if(i_extraPeople){
 		// Total number of PEOPLE
 		limit = m_total_people - peopleOffset;
 	} else{
@@ -291,71 +294,40 @@ function printGroups(i_groupSize, i_extraPeople, b_splitGroups){
 	//debug
 	// console.log("Limit: " + limit);
 
-	// Case 1: MINIMAL AMOUNT OF PEOPLE needed to separate
-	// Ex: 7 means you need to split into 3 + 4
+	// Case 1: MINIMAL AMOUNT OF PEOPLE(7) needed to separate
 	if(limit == 0){
-		groupOneSize = Math.ceil(peopleOffset / 2);
-
-		console.log("Group 1");
-		for(t; t < groupOneSize; t++){
-			console.log(m_employee_array[t]);
-		}
-		// Use m_total_people here since we want the remainder
-		console.log("\nGroup 2");
-		for(t; t < m_total_people; t++){
-			console.log(m_employee_array[t]);
-		}
+		console.log("Case 1");
+		printTwoGroups(peopleOffset);
 	} 
-	// Case 2: Uneven groups to split but more than 7
-	else if (limit > 0 && b_splitGroups){
+	// Case 2: Uneven groups to split but more than 7 people
+	else if (limit > 0 && i_extraPeople){
+		console.log("Case 2");
 		// Store total groups to print before we split
 		var totalGroups = (limit/i_groupSize);
+		
 		// Print up to that number of groups, leaving the odd split
 		for(i; i < (totalGroups); i++){
-			console.log("\nGroup " + groupNum);
-			// Print out a full group
-			for(var x =0; x < i_groupSize; x++) {
-				console.log(m_employee_array[t]);
-				t++;
-			}
-			groupNum++;
+			printGroupNames(i_groupSize, 1);
 		}
 
-		// At this point t is left at the iteration we want to continue
-		groupOneSize = t + Math.ceil(peopleOffset / 2);
-		console.log("\nGroup " + groupNum);
-		for(t; t < groupOneSize; t++){
-			console.log(m_employee_array[t]);
-		}
-
-		groupNum++;
-
-		// Use m_total_people here since we want the remainder
-		console.log("\nGroup " + groupNum);
-		for(t; t < m_total_people; t++){
-			console.log(m_employee_array[t]);
-		}
+		// Print remainder of group
+		printTwoGroups(peopleOffset);
 	}
 	// Case 3: Even groups to split
 	else {
-		for(i; i < limit; i++){
-			console.log("\nGroup " + groupNum);
-			for(var x = 0; x < i_groupSize; x++) {
-				console.log(m_employee_array[t]);	// Use employee iterator
-				t++;
-			}
-			groupNum++;
-		}		
+		console.log("Case 3");
+		printGroupNames(i_groupSize, limit);	
 	}
 
-	// Program end. Can add restart here if desired
+	// Go back to the menu
+	start();
 } // printGroups()
 
 /*
  * Function: 	randomizeArray()
  * Desc: 		Randomize the m_employee_array using 
  * 				Fisher-Yates shuffle
- * Params: 		NA
+ * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	generateGroups()
  * Calls: 		NA
@@ -381,3 +353,43 @@ function randomizeArray(){
 	// }
 
 } // randomizeArray()
+
+/*
+ * Function: 	printGroupNames()
+ * Desc: 		Prints the group number
+ * Param: 		i_groupSize - Size of group to print
+ * Param: 		i_groupsToPrint - Number of groups to print
+ * Returns: 	NA
+ * CalledBy: 	printGroups()
+ * Calls: 		NA
+ */
+function printGroupNames(i_groupSize, i_groupsToPrint){
+	for(var x = 0; x < i_groupsToPrint; x++){
+		console.log('\n');
+		console.log("Group " + m_group_num);
+		for(var y = 0; y < i_groupSize; y++){
+			console.log(m_employee_array[m_group_it]);
+			m_group_it++;
+		}
+		m_group_num++;
+	}
+} // printGroupNames()
+
+/*
+ * Function: 	printTwoGroups()
+ * Desc: 		Prints the two remaining groups by splitting
+ * Param: 		i_peopleOffset - Number of people left to group
+ * Returns: 	NA
+ * CalledBy: 	printGroups()
+ * Calls: 		NA
+ */
+function printTwoGroups(i_peopleOffset) {
+	var groupOneSize, groupTwoSize;
+
+	// Group One will be bigger and group two will be the rest
+	groupOneSize = Math.ceil(i_peopleOffset / 2);
+	groupTwoSize = (i_peopleOffset - groupOneSize);
+
+	printGroupNames(groupOneSize, 1);
+	printGroupNames(groupTwoSize, 1);
+} // printTwoGroups()
