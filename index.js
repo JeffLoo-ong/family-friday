@@ -2,14 +2,14 @@
  * Program: Family Friday
  * Desc: 	Create random groups of people to eat lunch with!
  * Author: 	Jeff Luong
- * Rev: 	1.0.1
- * Updated: 4/28/2017
+ * Rev: 	1.0.2
+ * Updated: 5/09/2017
  */
 
 
 "use strict";
 
-// Load libraries
+// Load 3rd party libraries
 var chalk       = require('chalk');		// Colorize output
 var clear       = require('clear');		// Clears the screen		
 var figlet      = require('figlet'); 	// ASCII Art from text
@@ -28,16 +28,71 @@ var m_group_it			= 0;				// Group name iterator
 // Program starts here!
 initialize();
 
-
 /*
  * Function: 	initialize()
- * Desc: 		Prepare the console and load employee list
+ * Desc: 		Starter function
  * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	index.js
- * Calls: 		start();
+ * Calls: 		printTitle(), loadFile()
  */
 function initialize(){
+	printTitle();
+	loadFile();
+} // initialize()
+
+/*
+ * Function: 	removeEmployee()
+ * Desc: 		Removes an employee from the list who is sick
+ * 				or on PTO!
+ * Param: 		NA
+ * Returns: 	NA
+ * CalledBy: 	showMenu()
+ * Calls: 		showMenu()
+ */
+function removeEmployee() {
+	var questions = [
+		{
+			name: 'employeeName',
+			type: 'input',
+			message: 'Enter an employee to exclude from the lunch groups:\n',
+			validate: function (employeeName) {
+				if(employeeName == ''){
+					return console.log('\nPlease enter a name\n');
+				} 
+				else {
+					return true;
+				}
+			}
+		}
+	];
+
+	inquirer.prompt(questions).then(function(response) {
+		var index = m_employee_array.indexOf(response.employeeName);
+		if(index !== -1) {
+			// Delete one instance of that name
+			m_employee_array.splice(index, 1);
+			console.log("Successfully removed " + response.employeeName + "!");
+			
+			//Reduce people count
+			m_total_people--;
+
+		} else {
+			console.log(response.employeeName + " was not found...");
+		}
+		showMenu();
+	});
+} // removeEmployees()
+
+/*
+ * Function: 	printTitle()
+ * Desc: 		Clears the console and prints the title
+ * Param: 		NA
+ * Returns: 	NA
+ * CalledBy: 	initialize()
+ * Calls: 		NA
+ */
+function printTitle(){
 	// Clean up the console screen
 	clear();
 
@@ -47,7 +102,17 @@ function initialize(){
 			figlet.textSync('Fam Friday', { horizontalLayout: 'full'})
 		)
 	);
+} // printTitle()
 
+/*
+ * Function: 	loadFile()
+ * Desc: 		Gets the fileName from user (if any) and loads the list
+ * Param: 		NA
+ * Returns: 	NA
+ * CalledBy: 	initialize()
+ * Calls: 		NA
+ */
+function loadFile(){
 	var questions = [
 		{
 			name: 'fileName',
@@ -69,52 +134,68 @@ function initialize(){
 		// Set the file name to user input
 		if(response.fileName != ''){
 			m_list_name = response.fileName;
-		} 
+		} else {
+			m_list_name = 'eList.txt';
+		}
 
 		console.log('Initializing employee list from ' + m_list_name + '...');
 		// Load employee list from m_list_name
 		fs.readFile(m_list_name, function(err, data) {
 		    if(err){
-		    	throw err;
-		    	// TODO: Make it so that the user gets prompted the question again
-		    	// 		 This can be done with a callback once you separate out 
-		    	// 		 the functionality here
-		    	// console.log("Error reading file: " + err);
-
-		    } else{
+		    	console.log("Error reading file: " + err);
+		    	loadFile();
+		    } else {
 			    var array = data.toString().split("\n");
 			    
 			    var i = 0;
 			    for(i; i < array.length; i++) {
 			        m_employee_array.push(array[i]);
 			    }
-			    
-			    // TODO: switched out of setTimeout function. Works with 5 people
+
 				m_total_people = m_employee_array.length;
 				console.log("Done!");
-				
-				start();
+				sortArray();
+				showMenu();
 		    }
-		    // TODO: Verify that this is not needed. 
-			// Set a timeout to allow above data to be set
-			// setTimeout(function(){ 
-			// 	// Set total number of people here so we don't have to call m_employee_array.length
-			// 	// multiple times 
-			// }, m_time_to_wait);	
 		});
 	});
-} // initialize()
-
+} // loadFile()
 
 /*
- * Function: 	start()
+ * Function: 	sortArray()
+ * Desc: 		Sorts the array in ascending order
+ * 				if a < b return -1 to signify a < b
+ * 				if a > b return 1 to signify a > b
+ * 				return 0 if a == b 
+ * Param: 		NA
+ * Returns: 	NA
+ * CalledBy: 	initialize()
+ * Calls: 		NA
+ */
+function sortArray(){
+	m_employee_array.sort(function(a, b){
+		var x = a.toLowerCase();
+		var y = b.toLowerCase();
+		// Sorting in ascending order
+		if(x < y) {
+			return -1;
+		}
+		if (x > y) {
+			return 1;
+		}
+		return 0;
+	});
+} // sortArray()
+
+/*
+ * Function: 	showMenu()
  * Desc: 		Initialize the program workflow
  * Param: 		NA
  * Returns: 	NA
  * CalledBy: 	index.js
  * Calls: 		addEmployee(), generateGroups()
  */
-function start() {
+function showMenu() {
 	var questions = [
 		{
 			name: 'option',
@@ -122,12 +203,13 @@ function start() {
 			message: 'What would you like to do?\n' +
 			'    1)Add an employee\n' +
 			'    2)Generate random lunch groups\n' +
-			'    3)Exit\n',
+			'    3)Remove an employee\n' +
+			'    4)Exit\n',
 			validate: function (value) {
-				if(value == 1 || value == 2 || value == 3) {
+				if(value == 1 || value == 2 || value == 3 || value == 4) {
 					return true;
 				} else {
-					return 'Please enter \'1\',\'2\' or \'3\'';
+					return 'Please enter \'1\',\'2\',\'3\'  or \'4\'';
 				}
 			}
 		}
@@ -141,6 +223,9 @@ function start() {
 			generateGroups();
 		}
 		else if (response.option == 3){
+			removeEmployee();
+		}
+		else if (response.option == 4){
 			console.log("Have a nice day!");
 			return -1;
 		}
@@ -150,15 +235,15 @@ function start() {
 			return -1;
 		}
 	});
-} // start()
+} // showMenu()
 
 /*
  * Function: 	addEmployee()
  * Desc: 		Append the employee to list of employees
  * Param: 		NA
  * Returns: 	NA
- * CalledBy: 	start()
- * Calls: 		start()
+ * CalledBy: 	showMenu()
+ * Calls: 		showMenu()
  */
 function addEmployee(){
 	
@@ -201,8 +286,8 @@ function addEmployee(){
 			  }
 			});
 		}
-		// Return to start menu
-		start();
+		// Return to showMenu menu
+		showMenu();
 	});
 } // addEmployee()
 
@@ -211,8 +296,8 @@ function addEmployee(){
  * Desc: 		Sort the list into groups
  * Param: 		NA
  * Returns: 	NA
- * CalledBy: 	start()
- * Calls: 		randomizeArray(), printGroups(), start()
+ * CalledBy: 	showMenu()
+ * Calls: 		randomizeArray(), printGroups(), showMenu()
  */
 function generateGroups(){
 	var groupSize; 				// Hold the size of the groups to create
@@ -252,7 +337,7 @@ function generateGroups(){
 	} else {
 		console.log("There are " + m_total_people + " people, we need at least 6 friends to" +
 			" make random groups!");
-		start();
+		showMenu();
 	}
 } // generateGroups()
 
@@ -296,12 +381,10 @@ function printGroups(i_groupSize, i_extraPeople){
 
 	// Case 1: MINIMAL AMOUNT OF PEOPLE(7) needed to separate
 	if(limit == 0){
-		console.log("Case 1");
 		printTwoGroups(peopleOffset);
 	} 
 	// Case 2: Uneven groups to split but more than 7 people
 	else if (limit > 0 && i_extraPeople){
-		console.log("Case 2");
 		// Store total groups to print before we split
 		var totalGroups = (limit/i_groupSize);
 		
@@ -315,12 +398,11 @@ function printGroups(i_groupSize, i_extraPeople){
 	}
 	// Case 3: Even groups to split
 	else {
-		console.log("Case 3");
 		printGroupNames(i_groupSize, limit);	
 	}
 
 	// Go back to the menu
-	start();
+	showMenu();
 } // printGroups()
 
 /*
