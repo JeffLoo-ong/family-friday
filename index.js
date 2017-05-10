@@ -55,7 +55,7 @@ function removeEmployee() {
 		{
 			name: 'employeeName',
 			type: 'input',
-			message: 'Enter an employee to exclude from the lunch groups:\n',
+			message: 'Enter an employee to exclude from the lunch groups: (0 to cancel)\n',
 			validate: function (employeeName) {
 				if(employeeName == ''){
 					return console.log('\nPlease enter a name\n');
@@ -68,18 +68,23 @@ function removeEmployee() {
 	];
 
 	inquirer.prompt(questions).then(function(response) {
-		var index = m_employee_array.indexOf(response.employeeName);
-		if(index !== -1) {
-			// Delete one instance of that name
-			m_employee_array.splice(index, 1);
-			console.log("Successfully removed " + response.employeeName + "!");
-			
-			//Reduce people count
-			m_total_people--;
+		if(response.employeeName != 0){
+			var index = m_employee_array.indexOf(response.employeeName);
+			if(index !== -1) {
+				// Delete one instance of that name
+				m_employee_array.splice(index, 1);
+				console.log("Successfully removed " + response.employeeName + "!");
+				
+				//Reduce people count
+				m_total_people--;
 
+			} else {
+				console.log(response.employeeName + " was not found...");
+			}
 		} else {
-			console.log(response.employeeName + " was not found...");
+			console.log("Cancelled removing an employee\n");
 		}
+
 		showMenu();
 	});
 } // removeEmployees()
@@ -177,12 +182,16 @@ function sortArray(){
 		var x = a.toLowerCase();
 		var y = b.toLowerCase();
 		// Sorting in ascending order
+		// Reverse signage to sort descending
 		if(x < y) {
+			// x is less than y, don't swap
 			return -1;
 		}
 		if (x > y) {
+			// x is greater, swap places
 			return 1;
 		}
+		// both are equal
 		return 0;
 	});
 } // sortArray()
@@ -253,13 +262,8 @@ function addEmployee(){
 			type: 'input',
 			message: 'Please enter the name of the employee you wish to add: (0 to cancel)',
 			validate: function (value) {
-				// Go back to intial questions if cancelled
-				if(value == 0) {
-					console.log('\n');
-					return true;
-				} 
 				// Any value except '0' is valid!
-				else if (value){
+				if (value != ''){
 					return true;
 				}
 				// In case of blanks
@@ -278,13 +282,15 @@ function addEmployee(){
 			  if (err) {
 			  	throw err;
 			  }
-			  else{
+			  else {
 			  	m_employee_array.push(response.employee_name);
-			  	console.log('Added ' + response.employee_name + ' to the list!\n\n\n\n\n');
 			  	// Increment the total number of people
 			  	m_total_people++;
+			  	console.log('Added ' + response.employee_name + ' to the list!\n');
 			  }
 			});
+		} else {
+			console.log('Cancelled adding an employee\n');
 		}
 		// Return to showMenu menu
 		showMenu();
@@ -379,6 +385,8 @@ function printGroups(i_groupSize, i_extraPeople){
 	//debug
 	// console.log("Limit: " + limit);
 
+	// Print out line separator
+	console.log("~~~~~~~~~~~~~~~~~~~~~~~\n");
 	// Case 1: MINIMAL AMOUNT OF PEOPLE(7) needed to separate
 	if(limit == 0){
 		printTwoGroups(peopleOffset);
@@ -401,6 +409,8 @@ function printGroups(i_groupSize, i_extraPeople){
 		printGroupNames(i_groupSize, limit);	
 	}
 
+	console.log("~~~~~~~~~~~~~~~~~~~~~~~\n");
+	
 	// Go back to the menu
 	showMenu();
 } // printGroups()
@@ -447,7 +457,7 @@ function randomizeArray(){
  */
 function printGroupNames(i_groupSize, i_groupsToPrint){
 	for(var x = 0; x < i_groupsToPrint; x++){
-		console.log('\n');
+		// console.log('\n');
 		console.log("Group " + m_group_num);
 		for(var y = 0; y < i_groupSize; y++){
 			console.log(m_employee_array[m_group_it]);
@@ -455,6 +465,7 @@ function printGroupNames(i_groupSize, i_groupsToPrint){
 		}
 		m_group_num++;
 	}
+	console.log('\n');
 } // printGroupNames()
 
 /*
